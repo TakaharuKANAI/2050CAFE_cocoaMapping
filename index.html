@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2050 CAFE - 8 Cocoa Personality Map</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: #0a0a0f;
+      color: #e8e8e8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-image: 
+        linear-gradient(rgba(0,245,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,255,0.02) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      max-width: 1400px;
+      width: 100%;
+    }
+
+    h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: 2.5rem;
+      text-align: center;
+      margin-bottom: 10px;
+      color: #00f5ff;
+      text-shadow: 0 0 20px rgba(0,245,255,0.5);
+      letter-spacing: 0.3em;
+    }
+
+    h1 span {
+      color: #ff2d95;
+      text-shadow: 0 0 20px rgba(255,45,149,0.5);
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #6a6a7a;
+      margin-bottom: 60px;
+      letter-spacing: 0.3em;
+      font-family: 'Orbitron', monospace;
+    }
+
+    .mapping-container {
+      position: relative;
+      width: 100%;
+      max-width: 1000px;
+      height: 800px;
+      margin: 0 auto;
+      background: rgba(18, 18, 26, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 80px 60px 60px 80px;
+    }
+
+    .axis {
+      position: absolute;
+      background: rgba(0, 245, 255, 0.3);
+    }
+
+    .axis-vertical {
+      left: 50%;
+      top: 60px;
+      bottom: 60px;
+      width: 2px;
+      transform: translateX(-1px);
+    }
+
+    .axis-horizontal {
+      top: 50%;
+      left: 60px;
+      right: 60px;
+      height: 2px;
+      transform: translateY(-1px);
+    }
+
+    .axis-label {
+      position: absolute;
+      font-family: 'Orbitron', monospace;
+      letter-spacing: 0.2em;
+      color: #00f5ff;
+      text-shadow: 0 0 10px rgba(0,245,255,0.5);
+      text-align: center;
+    }
+
+    .axis-label-top {
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .axis-label-bottom {
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .axis-label-left {
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%) rotate(-90deg);
+      font-size: 0.9rem;
+      font-weight: 700;
+      transform-origin: center;
+      width: 200px;
+    }
+
+    .axis-label-right {
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%) rotate(90deg);
+      font-size: 0.9rem;
+      font-weight: 700;
+      transform-origin: center;
+      width: 200px;
+    }
+
+    .axis-label-sub {
+      display: block;
+      font-size: 0.7rem;
+      color: #6a6a7a;
+      margin-top: 6px;
+      letter-spacing: 0.15em;
+      font-weight: 400;
+    }
+
+    .cocoa-node {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .cocoa-node:hover {
+      transform: translate(-50%, -50%) scale(1.15);
+      z-index: 100;
+    }
+
+    .cocoa-node:hover .node-glow {
+      opacity: 1;
+    }
+
+    .cocoa-node:hover .node-detail {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .node-glow {
+      position: absolute;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .node-circle {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      border: 3px solid;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(18, 18, 26, 0.95);
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 2;
+    }
+
+    .node-name-en {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-bottom: 3px;
+      text-align: center;
+      line-height: 1.1;
+    }
+
+    .node-name-jp {
+      font-size: 0.75rem;
+      opacity: 0.9;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .node-keyword {
+      position: absolute;
+      top: 115%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-top: 8px;
+      font-size: 0.65rem;
+      color: #6a6a7a;
+      white-space: nowrap;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .node-keyword-sub {
+      font-size: 0.6rem;
+      display: block;
+      margin-top: 2px;
+    }
+
+    .node-detail {
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(18, 18, 26, 0.98);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 14px 18px;
+      min-width: 240px;
+      max-width: 280px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .detail-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      color: #00f5ff;
+      margin-bottom: 8px;
+      letter-spacing: 0.1em;
+    }
+
+    .detail-recipe {
+      font-size: 0.65rem;
+      color: #999;
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    .detail-text {
+      font-size: 0.75rem;
+      line-height: 1.6;
+      color: #b8b8b8;
+    }
+
+    /* Individual Cocoa Colors - More Colorful */
+    /* オールドファッション: 深いブラウン（クラシック） */
+    .node-oldfashion .node-circle { border-color: #8b6355; color: #8b6355; }
+    .node-oldfashion .node-glow { background: radial-gradient(circle, rgba(139,99,85,0.3), transparent); }
+
+    /* オレンジマーマレイド: オレンジ */
+    .node-orange .node-circle { border-color: #e8a040; color: #e8a040; }
+    .node-orange .node-glow { background: radial-gradient(circle, rgba(232,160,64,0.3), transparent); }
+
+    /* 黒ごまきなこ: 抹茶グリーン（和のイメージ） */
+    .node-sesame .node-circle { border-color: #8a9a5b; color: #8a9a5b; }
+    .node-sesame .node-glow { background: radial-gradient(circle, rgba(138,154,91,0.3), transparent); }
+
+    /* マシュマロホイップ: ピンク */
+    .node-marshmallow .node-circle { border-color: #e8a0b0; color: #e8a0b0; }
+    .node-marshmallow .node-glow { background: radial-gradient(circle, rgba(232,160,176,0.3), transparent); }
+
+    /* キャラメルソルト: ゴールド */
+    .node-caramel .node-circle { border-color: #d4a855; color: #d4a855; }
+    .node-caramel .node-glow { background: radial-gradient(circle, rgba(212,168,85,0.3), transparent); }
+
+    /* おとなココア: ディープブルー（大人・知的） */
+    .node-adult .node-circle { border-color: #6080a0; color: #6080a0; }
+    .node-adult .node-glow { background: radial-gradient(circle, rgba(96,128,160,0.3), transparent); }
+
+    /* チョコア: チョコレートブラウン＋レッド */
+    .node-chocoa .node-circle { border-color: #c06050; color: #c06050; }
+    .node-chocoa .node-glow { background: radial-gradient(circle, rgba(192,96,80,0.3), transparent); }
+
+    /* ジンジャースパイス: スパイシーレッド */
+    .node-ginger .node-circle { border-color: #c88060; color: #c88060; }
+    .node-ginger .node-glow { background: radial-gradient(circle, rgba(200,128,96,0.3), transparent); }
+
+    .legend {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: rgba(18, 18, 26, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 20px;
+      font-size: 0.75rem;
+      max-width: 360px;
+      max-height: 70vh;
+      overflow-y: auto;
+      z-index: 50;
+    }
+
+    .legend-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      color: #00f5ff;
+      margin-bottom: 15px;
+      letter-spacing: 0.2em;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      gap: 10px;
+    }
+
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .legend-text {
+      flex: 1;
+    }
+
+    .legend-en {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      color: #e8e8e8;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .legend-jp {
+      font-size: 0.7rem;
+      color: #b8b8b8;
+      margin-top: 2px;
+    }
+
+    .legend-recipe {
+      font-size: 0.65rem;
+      color: #6a6a7a;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 1024px) {
+      .mapping-container {
+        height: 700px;
+        padding: 60px 40px 40px 60px;
+      }
+      .node-circle {
+        width: 90px;
+        height: 90px;
+      }
+      .node-name-en { font-size: 0.5rem; }
+      .node-name-jp { font-size: 0.7rem; }
+    }
+
+    @media (max-width: 768px) {
+      h1 { font-size: 1.8rem; }
+      .mapping-container {
+        height: 600px;
+        padding: 50px 30px 30px 50px;
+      }
+      .node-circle {
+        width: 75px;
+        height: 75px;
+      }
+      .legend {
+        position: relative;
+        bottom: auto;
+        right: auto;
+        margin-top: 30px;
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>2050<span>CAFE</span></h1>
+    <p class="subtitle">8 COCOA PERSONALITY MAP</p>
+
+    <div class="mapping-container">
+      <div class="axis axis-vertical"></div>
+      <div class="axis axis-horizontal"></div>
+
+      <div class="axis-label axis-label-top">
+        STIMULATION
+        <span class="axis-label-sub">刺激</span>
+      </div>
+      <div class="axis-label axis-label-bottom">
+        STABILITY
+        <span class="axis-label-sub">安定</span>
+      </div>
+      <div class="axis-label axis-label-left">
+        INTROVERT
+        <span class="axis-label-sub">内向</span>
+      </div>
+      <div class="axis-label axis-label-right">
+        EXTROVERT
+        <span class="axis-label-sub">外向</span>
+      </div>
+
+      <!-- 内向・安定: オールドファッション -->
+      <div class="cocoa-node node-oldfashion" style="left: 28%; top: 70%;">
+        <div class="node-glow"></div>
+        <div class="node-circle">
+          <div class="node-name-en">OLD<br>FASHION</div>
+          <div class="node-name-jp">オールド<br>ファッション</div>
+        </div>
+        <div class="node-keyword">
+          Pure / Classic
+          <span class="node-keyword-sub">シンプル・ほんもの</span>
+        </div>
+        <div class="node-detail">
+          <div class="detail-title">OLD FASHIONED COCOA</div>
+          <div class="detail-recipe">ベース:ココア / トッピング:なし</div>
+          <div class="detail-text">「シンプルがいちばん」って知ってる人。何もたさない、何もひかない。ふつうのココアが、いちばんおいしい。</div>
+        </div>
+      </div>
+
+      <!-- 内向・安定: 黒ごまきなこ -->
+      <div class="cocoa-node node-sesame" style="left: 42%; top: 78%;">
+        <div class="node-glow"></div>
+        <div class="node-circle">
+          <div class="node-name-en">SESAME<br>KINAKO</div>
+          <div class="node-name-jp">黒ごま<br>きなこ</div>
+        </div>
+        <div class="node-keyword">
+          Nostalgic / Japanese
+          <span class="node-keyword-sub">やさしい・なつかしい</span>
+        </div>
+        <div class="node-detail">
+          <div class="detail-title">BLACK SESAME KINAKO COCOA</div>
+          <div class="detail-recipe">ベース:黒ごま / トッピング:きなこ</div>
+          <div class="detail-text">「いつものがいい」って思う人。黒ごまときなこの深い味は、ホッとするやさしさ。</div>
+        </div>
+      </div>
+
+      <!-- 内向・刺激: ジンジャースパイス -->
+      <div class="cocoa-node node-ginger" style="left: 32%; top: 28%;">
+        <div class="node-glow"></div>
+        <div class="node-circle">
+          <div class="node-name-en">GINGER<br>SPICE</div>
+          <div class="node-name-jp">ジンジャー<br>スパイス</div>
+        </div>
+        <div class="node-keyword">
+          Warm / Adventure
+          <span class="node-keyword-sub">あたたかい・ぼうけん</span>
+        </div>
+        <div class="node-detail">
+          <div class="detail-title">GINGER SPICE COCOA</div>
+          <div class="detail-recipe">ベース:生姜 / トッピング:シナモン</div>
+          <div class="detail-text">「あたらしいことが好き」な人。しょうがとシナモンのスパイスが、からだをじんわりあたためる。ぼうけんしたい気分にぴったり。</div>
+        </div>
+      </div>
+
+      <!-- 内向・刺激: おとな -->
+      <div class="cocoa-node node-adult" style="left: 35%; top: 48%;">
+        <div class="node-glow"></div>
+        <div class="node-circle">
+          <div class="node-name-en">ADULT<br>COCOA</div>
+          <div class="node-name-jp">おとな<br>ココア</div>
+        </div>
+        <div class="node-keyword">
+          Focus / Deep
+          <span class="node-keyword-sub">しゅうちゅう・かんがえる</span>
+        </div>
+        <div class="node-detail">
+          <div class="detail-title">ADULT COCOA</div>
+          <div class="detail-recipe">ベース:コーヒー / トッピング:コーヒー</div>
+          <div class="detail-text">「よく考えたい」人。コーヒーとチョコのにがさとあまさが、おとなっぽい味。</div>
+        </div>
+      </div>
+
+      <!-- 外向・刺激: チョコア -->
+      <div class="cocoa-node node-chocoa" style="left: 68%; top: 32%;">
+        <div class="node-glow"></div>
+        <div class="node-circle">
+          <div class="node-name-en">CHOCOA</div>
+          <div class="node-name-jp">チョコア</div>
+        </div>
+        <div class="node-keyword">
+          Fun / Playful
+          <span class="node-keyword-sub">楽しい・わくわく</span>
+        </div>
+        <div class="node-detail">
+          <div class="detail-title">CHOCOA</div>
+          <div class="detail-recipe">ベース:バニラ / トッピング:チョコフレーク</div>
+          <div class="detail-text">「楽しいことが大好き」な人。バニラのやさしさに、チョコフレークのサクサク。あそびごころいっぱい。</div>
+        </div>
+      </div>
+
+      <!-- 外向・刺激: オレンジマーマレイド -->
+      <div class="cocoa-node node-orange" style="left: 70%; top: 50%;">
+        <div class="node-glow"></div>
+        <div class="node-circle">
+          <div class="node-name-en">ORANGE<br>MARMALADE</div>
+          <div class="node-name-jp">オレンジ<br>マーマレイド</div>
+        </div>
+        <div class="node-keyword">
+          Bright / Fresh
+          <span class="node-keyword-sub">あかるい・さわやか</span>
+        </div>
+        <div class="node-detail">
+          <div class="detail-title">ORANGE MARMALADE COCOA</div>
+          <div class="detail-recipe">ベース:マーマレイド / トッピング:オレンジピール</div>
+          <div class="detail-text">「げんきで楽しい」のが好きな人。オレンジのさわやかさで、みんなを笑顔にできる。</div>
+        </div>
+      </div>
+
+      <!-- 外向・安定: マシュマロホイップ -->
+      <div class="cocoa-node node-marshmallow" style="left: 70%; top: 72%;">
+        <div class="node-glow"></div>
+        <div class="node-circle">
+          <div class="node-name-en">MALLOW<br>WHIP</div>
+          <div class="node-name-jp">マシュマロ<br>ホイップ</div>
+        </div>
+        <div class="node-keyword">
+          Happy / Moment
+          <span class="node-keyword-sub">ふわふわ・しあわせ</span>
+        </div>
+        <div class="node-detail">
+          <div class="detail-title">MARSHMALLOW WHIP COCOA</div>
+          <div class="detail-recipe">ベース:ー / トッピング:マシュマロ&ホイップ</div>
+          <div class="detail-text">「今を楽しみたい」人。ふわふわのマシュマロとホイップがとけていく時間が、しあわせ。</div>
+        </div>
+      </div>
+
+      <!-- 外向・安定: キャラメルソルト -->
+      <div class="cocoa-node node-caramel" style="left: 58%; top: 65%;">
+        <div class="node-glow"></div>
+        <div class="node-circle">
+          <div class="node-name-en">CARAMEL<br>SALT</div>
+          <div class="node-name-jp">キャラメル<br>ソルト</div>
+        </div>
+        <div class="node-keyword">
+          Balanced / Trendy
+          <span class="node-keyword-sub">バランス・おしゃれ</span>
+        </div>
+        <div class="node-detail">
+          <div class="detail-title">CARAMEL SALT COCOA</div>
+          <div class="detail-recipe">ベース:塩 / トッピング:キャラメルクランチ</div>
+          <div class="detail-text">「ちょうどいいのが好き」な人。あまさとしょっぱさの、ちょうどいいバランス。おしゃれだけど、おちつく。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-title">8 COCOA TYPES</div>
+    
+    <div class="legend-item">
+      <div class="legend-color" style="border-color: #8b6355;"></div>
+      <div class="legend-text">
+        <div class="legend-en">OLD FASHIONED</div>
+        <div class="legend-jp">オールドファッションココア</div>
+        <div class="legend-recipe">ベース:ココア / トッピング:なし</div>
+      </div>
+    </div>
+
+    <div class="legend-item">
+      <div class="legend-color" style="border-color: #e8a040;"></div>
+      <div class="legend-text">
+        <div class="legend-en">ORANGE MARMALADE</div>
+        <div class="legend-jp">オレンジマーマレイドココア</div>
+        <div class="legend-recipe">ベース:マーマレイド / トッピング:オレンジピール</div>
+      </div>
+    </div>
+
+    <div class="legend-item">
+      <div class="legend-color" style="border-color: #8a9a5b;"></div>
+      <div class="legend-text">
+        <div class="legend-en">SESAME KINAKO</div>
+        <div class="legend-jp">黒ごまきなこココア</div>
+        <div class="legend-recipe">ベース:黒ごま / トッピング:きなこ</div>
+      </div>
+    </div>
+
+    <div class="legend-item">
+      <div class="legend-color" style="border-color: #e8a0b0;"></div>
+      <div class="legend-text">
+        <div class="legend-en">MALLOW WHIP</div>
+        <div class="legend-jp">マシュマロホイップココア</div>
+        <div class="legend-recipe">ベース:ー / トッピング:マシュマロ&ホイップ</div>
+      </div>
+    </div>
+
+    <div class="legend-item">
+      <div class="legend-color" style="border-color: #d4a855;"></div>
+      <div class="legend-text">
+        <div class="legend-en">CARAMEL SALT</div>
+        <div class="legend-jp">キャラメルソルトココア</div>
+        <div class="legend-recipe">ベース:塩 / トッピング:キャラメルクランチ</div>
+      </div>
+    </div>
+
+    <div class="legend-item">
+      <div class="legend-color" style="border-color: #6080a0;"></div>
+      <div class="legend-text">
+        <div class="legend-en">ADULT COCOA</div>
+        <div class="legend-jp">おとなココア</div>
+        <div class="legend-recipe">ベース:コーヒー / トッピング:コーヒー</div>
+      </div>
+    </div>
+
+    <div class="legend-item">
+      <div class="legend-color" style="border-color: #c06050;"></div>
+      <div class="legend-text">
+        <div class="legend-en">CHOCOA</div>
+        <div class="legend-jp">チョコア</div>
+        <div class="legend-recipe">ベース:バニラ / トッピング:チョコフレーク</div>
+      </div>
+    </div>
+
+    <div class="legend-item">
+      <div class="legend-color" style="border-color: #c88060;"></div>
+      <div class="legend-text">
+        <div class="legend-en">GINGER SPICE</div>
+        <div class="legend-jp">ジンジャースパイスココア</div>
+        <div class="legend-recipe">ベース:生姜 / トッピング:シナモン</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
